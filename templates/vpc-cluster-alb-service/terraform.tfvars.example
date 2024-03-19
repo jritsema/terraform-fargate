@@ -1,5 +1,8 @@
-name = "ai-chatbot"
+name = "my-app"
+container_port = 8080
+health_check = "/health"
 
 tags = {
-  app = "ai-chatbot"
+  app = "my-app"
+  template = "https://github.com/jritsema/terraform-fargate"
 }

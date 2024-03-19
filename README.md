@@ -38,6 +38,9 @@ cat << EOF > terraform.tfvars
 name = "${APP}"
 container_port = 8080
 health_check = "/health"
+tags = {
+  app = "my-app"
+}
 EOF
 
 # run terraform
