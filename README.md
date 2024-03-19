@@ -1,6 +1,7 @@
 # terraform-fargate
 
-This is a collection of Terraform templates and scripts for provisioning and deploying Fargate apps.
+Provision and deploy Fargate apps using a collection of Terraform templates and Bash scripts.
+
 
 ## Features
 
