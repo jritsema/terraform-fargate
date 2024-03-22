@@ -22,7 +22,7 @@ module "ecs_service" {
   # supports external task def deployments
   # by ignoring changes to task definition and desired count
   ignore_task_definition_changes = true
-  desired_count                  = 2
+  desired_count                  = 1
 
   # Task Definition
   enable_execute_command = false
