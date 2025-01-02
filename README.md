@@ -39,7 +39,8 @@ name = "${APP}"
 container_port = 8080
 health_check = "/health"
 tags = {
-  app = "my-app"
+  app = "${APP}"
+  template = "https://github.com/jritsema/terraform-fargate"
 }
 EOF
 
