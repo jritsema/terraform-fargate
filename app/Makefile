@@ -27,3 +27,9 @@ start:
 	clear
 	@echo ""
 	python -u main.py
+
+## deploy: build and deploy a new container (e.g. make deploy app=my-app)
+.PHONY: deploy
+deploy:
+	./deploy.sh $(app) linux/amd64
+
