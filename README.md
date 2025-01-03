@@ -9,6 +9,8 @@ Provision and deploy Fargate apps using a collection of Terraform templates and 
 
 - Allows separation of infrastructure and application deployments (by having terraform ignore changes to service's task definition and desired count)
 
+- A built-in `deploy.sh` script that automates the process of building container images, pushing them to ECR, registering new task definitions, updating the ECS service, and waiting until the deployment is complete
+
 - Fast initial deployment using a tiny default backend container
 
 ## Usage
@@ -58,9 +60,16 @@ endpoint = "http://my-app-123456789012.us-east-1.elb.amazonaws.com"
 
 ### Deploy web app
 
+The supplied `deploy.sh` script will build a new container image and tell the ECS/Fargate service to deploy it.
+
 ```sh
 cd ../../app
 ./deploy.sh ${APP} linux/amd64
+```
+
+You can also use the convenient make command:
+```sh
+make deploy app=${APP}
 ```
 
 Note that you can continue to use terraform to make changes to the infrastructure, however it will no longer deploy new task definitions to the service or change the desired count. Instead, you can use the deploy script to build/deploy new container images. Desired task count is generally managed by auto-scaling going forward.
