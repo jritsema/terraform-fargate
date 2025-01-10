@@ -42,11 +42,11 @@ module "ecs_service" {
       environment = [
         {
           "name" : "PORT",
-          "value" : "${var.container_port}"
+          "value" : var.container_port
         },
         {
           "name" : "HEALTHCHECK",
-          "value" : "${var.health_check}"
+          "value" : var.health_check
         },
       ]
 

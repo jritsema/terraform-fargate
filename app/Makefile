@@ -32,4 +32,3 @@ start:
 .PHONY: deploy
 deploy:
 	./deploy.sh $(app) linux/amd64
-
