@@ -81,6 +81,6 @@ Note that you can continue to use terraform to make changes to the infrastructur
 
 - [cluster-alb-service](./templates/cluster-alb-service/README.md) - Deploy HTTP endpoint into existing VPC (provisions ECR, ECS Cluster, ALB, and ECS Service)
 
-- alb-service - Deploy HTTP endpoint into existing VPC and Cluster (provisions ALB and ECS Service)
+- [alb-service](./templates/alb-service/README.md) - Deploy HTTP endpoint into existing VPC and Cluster (provisions ALB and ECS Service)
 
 - service - Deploy long running container (no load balancer) into existing VPC and Cluster (provisions ECR and ECS Service)
