@@ -1,0 +1,12 @@
+name = "my-app"
+container_port = 8080
+health_check = "/health"
+
+vpc_name = ""
+alb_subnet_names = ["",""]
+service_subnet_names = ["",""]
+
+tags = {
+  app = "my-app"
+  template = "https://github.com/jritsema/terraform-fargate"
+}
