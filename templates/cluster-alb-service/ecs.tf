@@ -1,20 +1,17 @@
 module "ecs_cluster" {
   source  = "terraform-aws-modules/ecs/aws//modules/cluster"
-  version = "~> 5.6"
+  version = "~> 7.0"
 
-  cluster_name = var.name
+  name = var.name
 
-  fargate_capacity_providers = {
-    FARGATE      = {}
-    FARGATE_SPOT = {}
-  }
+  cluster_capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
   tags = var.tags
 }
 
 module "ecs_service" {
   source  = "terraform-aws-modules/ecs/aws//modules/service"
-  version = "~> 5.6"
+  version = "~> 7.0"
 
   name        = var.name
   cluster_arn = module.ecs_cluster.arn
@@ -32,7 +29,7 @@ module "ecs_service" {
 
       image = var.image
 
-      port_mappings = [
+      portMappings = [
         {
           protocol      = "tcp",
           containerPort = var.container_port
@@ -50,7 +47,7 @@ module "ecs_service" {
         },
       ]
 
-      readonly_root_filesystem = false
+      readonlyRootFilesystem = false
     }
   }
 
@@ -67,21 +64,19 @@ module "ecs_service" {
   }
 
   subnet_ids = data.aws_subnets.service.ids
-  security_group_rules = {
+  security_group_ingress_rules = {
     ingress_alb_service = {
-      type                     = "ingress"
-      from_port                = var.container_port
-      to_port                  = var.container_port
-      protocol                 = "tcp"
-      description              = "Service port"
-      source_security_group_id = module.alb.security_group_id
+      from_port                    = var.container_port
+      to_port                      = var.container_port
+      ip_protocol                  = "tcp"
+      description                  = "Service port"
+      referenced_security_group_id = module.alb.security_group_id
     }
+  }
+  security_group_egress_rules = {
     egress_all = {
-      type        = "egress"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
+      ip_protocol = "-1"
+      cidr_ipv4   = "0.0.0.0/0"
     }
   }
 
@@ -110,14 +105,12 @@ resource "aws_service_discovery_service" "this" {
     routing_policy = "MULTIVALUE"
   }
 
-  health_check_custom_config {
-    failure_threshold = 1
-  }
+  health_check_custom_config {}
 }
 
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
-  version = "~> 9.0"
+  version = "~> 10.0"
 
   name = var.name
 
