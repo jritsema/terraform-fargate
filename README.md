@@ -77,10 +77,10 @@ Note that you can continue to use terraform to make changes to the infrastructur
 
 ## Templates
 
-- [vpc-cluster-alb-service](./templates/vpc-cluster-alb-service/README.md) - Deploy all-in-one HTTP endpoint (provisions VPC, ECR, ECS Cluster, ALB, and ECS Service)
+- [alb-service](./templates/alb-service/README.md) - Deploy HTTP endpoint into existing VPC and Cluster (provisions ALB and ECS Service)
 
 - [cluster-alb-service](./templates/cluster-alb-service/README.md) - Deploy HTTP endpoint into existing VPC (provisions ECR, ECS Cluster, ALB, and ECS Service)
 
-- [alb-service](./templates/alb-service/README.md) - Deploy HTTP endpoint into existing VPC and Cluster (provisions ALB and ECS Service)
+- [vpc-cluster-alb-service](./templates/vpc-cluster-alb-service/README.md) - Deploy all-in-one HTTP endpoint (provisions VPC, ECR, ECS Cluster, ALB, and ECS Service)
 
-- service - Deploy long running container (no load balancer) into existing VPC and Cluster (provisions ECR and ECS Service)
+- [cloudfront-vpc-cluster-alb-service](./templates/cloudfront-vpc-cluster-alb-service/README.md) - Deploy all-in-one HTTPS endpoint with CloudFront (provisions VPC, ECR, ECS Cluster, ALB, ECS Service, and CloudFront).

@@ -1,0 +1,177 @@
+module "ecs_cluster" {
+  source  = "terraform-aws-modules/ecs/aws//modules/cluster"
+  version = "~> 7.0"
+
+  name = var.name
+
+  cluster_capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+
+  tags = var.tags
+}
+
+module "ecs_service" {
+  source  = "terraform-aws-modules/ecs/aws//modules/service"
+  version = "~> 7.0"
+
+  name        = var.name
+  cluster_arn = module.ecs_cluster.arn
+
+  # supports external task def deployments
+  # by ignoring changes to task definition and desired count
+  ignore_task_definition_changes = true
+  desired_count                  = 1
+
+  # Task Definition
+  enable_execute_command = false
+
+  container_definitions = {
+    (var.container_name) = {
+
+      image = var.image
+
+      portMappings = [
+        {
+          protocol      = "tcp",
+          containerPort = var.container_port
+        }
+      ]
+
+      environment = [
+        {
+          "name" : "PORT",
+          "value" : var.container_port
+        },
+        {
+          "name" : "HEALTHCHECK",
+          "value" : var.health_check
+        },
+      ]
+
+      readonlyRootFilesystem = false
+    }
+  }
+
+  service_registries = {
+    registry_arn = aws_service_discovery_service.this.arn
+  }
+
+  load_balancer = {
+    service = {
+      target_group_arn = module.alb.target_groups["ecs-task"].arn
+      container_name   = var.container_name
+      container_port   = var.container_port
+    }
+  }
+
+  subnet_ids = module.vpc.private_subnets
+  security_group_ingress_rules = {
+    ingress_alb_service = {
+      from_port                    = var.container_port
+      to_port                      = var.container_port
+      ip_protocol                  = "tcp"
+      description                  = "Service port"
+      referenced_security_group_id = module.alb.security_group_id
+    }
+  }
+  security_group_egress_rules = {
+    egress_all = {
+      ip_protocol = "-1"
+      cidr_ipv4   = "0.0.0.0/0"
+    }
+  }
+
+  tags = var.tags
+}
+
+resource "aws_service_discovery_private_dns_namespace" "this" {
+  name        = "default.${var.name}.local"
+  description = "Service discovery namespace.clustername.local"
+  vpc         = module.vpc.vpc_id
+
+  tags = var.tags
+}
+
+resource "aws_service_discovery_service" "this" {
+  name = var.name
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.this.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {}
+}
+
+module "alb" {
+  source  = "terraform-aws-modules/alb/aws"
+  version = "~> 10.0"
+
+  name     = var.name
+  internal = true
+
+  # For example only
+  enable_deletion_protection = false
+
+  vpc_id  = module.vpc.vpc_id
+  subnets = module.vpc.private_subnets
+
+  security_group_ingress_rules = {
+    cloudfront_vpc_origin = {
+      from_port                    = 80
+      to_port                      = 80
+      ip_protocol                  = "tcp"
+      description                  = "HTTP from CloudFront VPC origin"
+      referenced_security_group_id = data.aws_security_group.cloudfront_vpc_origin.id
+    }
+  }
+
+  security_group_egress_rules = { for cidr_block in module.vpc.private_subnets_cidr_blocks :
+    (cidr_block) => {
+      ip_protocol = "-1"
+      cidr_ipv4   = cidr_block
+    }
+  }
+
+  listeners = {
+    http = {
+      port     = "80"
+      protocol = "HTTP"
+
+      forward = {
+        target_group_key = "ecs-task"
+      }
+    }
+  }
+
+  target_groups = {
+    ecs-task = {
+      backend_protocol = "HTTP"
+      backend_port     = var.container_port
+      target_type      = "ip"
+
+      health_check = {
+        enabled             = true
+        healthy_threshold   = 5
+        interval            = 10
+        matcher             = "200-299"
+        path                = var.health_check
+        port                = "traffic-port"
+        protocol            = "HTTP"
+        timeout             = 5
+        unhealthy_threshold = 2
+      }
+
+      # There's nothing to attach here in this definition. Instead,
+      # ECS will attach the IPs of the tasks to this target group
+      create_attachment = false
+    }
+  }
+
+  tags = var.tags
+}
